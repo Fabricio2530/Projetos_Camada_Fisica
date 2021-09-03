@@ -9,6 +9,7 @@
 #esta é a camada superior, de aplicação do seu software de comunicação serial UART.
 #para acompanhar a execução e identificar erros, construa prints ao longo do código! 
 
+import time
 import random 
 from enlace import *
 import time
@@ -37,6 +38,7 @@ def main():
         
     
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
+        t0 = time.time()
         com1.enable()
         #Se chegamos até aqui, a comunicação foi aberta com sucesso. Faça um print para informar.
         print("Comunicação iniciada com sucesso")
@@ -70,7 +72,10 @@ def main():
             else:
                 mensagem.append(comd)
                 contaBytes += 1
-               
+        
+        #adicionando codigo de finalização da mensagem
+        mensagem.append(5)
+
         print("Mensagem criada")
         print("-------------------------")
 
@@ -90,12 +95,46 @@ def main():
         
 
         print("O tamanho de bytes enviado foi de {}".format(contaBytes))
+        print("-------------------------")
+
+        #agora vamos perguntar ao servidor se deu tudo certo com a mensagem
+        print("Pedindo para o servidor a resposta!")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~")
+        
+        rxBuffer, nRx = com1.getData(2)
 
 
+        print("A resposta foi {} bytes".format(rxBuffer[1]))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~")
+        time.sleep(1)
+
+        
+        print("VAMOS COMPARAR O NUMERO DE BYTES RECEBIDOS E ENVIADOS")
+        time.sleep(1)
+        print("-------------------------")
+        print("Foram enviados {} bytes e foram recebidos {} bytes.".format(contaBytes, rxBuffer[1]))
+        print("-------------------------")
+
+        time.sleep(1)
+        if (contaBytes) == (rxBuffer[1]):
+            print("Deu tudo certo! A comunicação foi feita com sucesso!!!!")
+        
+        else: 
+            print("Ops! Algo deu errado!")
+
+
+        time.sleep(1)
+
+        print("-------------------------")
         print("Comunicação encerrada")
         print("-------------------------")
-        #com1.disable()
-        #com2.disable()
+        com1.disable()
+        t1 = time.time()
+
+        fullTime = t1-t0-4
+        print("************************")
+        print("O tempo de comunicação entre o client e o servidor foi de {}".format(fullTime))
+        print("************************")
         
     except Exception as erro:
         print("ops! :-\\")

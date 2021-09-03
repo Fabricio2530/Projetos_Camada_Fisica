@@ -9,7 +9,7 @@
 #esta é a camada superior, de aplicação do seu software de comunicação serial UART.
 #para acompanhar a execução e identificar erros, construa prints ao longo do código! 
 
-
+import time
 from enlace import *
 import time
 import numpy as np
@@ -40,6 +40,7 @@ def main():
         #txtBuffer = ''
     
         com2.enable()
+        t0 = time.time()
         #Se chegamos até aqui, a comunicação foi aberta com sucesso. Faça um print para informar.
         print("Comunicação iniciada com sucesso")
      
@@ -60,28 +61,40 @@ def main():
             print("-------------------------")
             print("O tamanho da mensagem é {} comandos".format(lenBuffer))
 
-            while lenBuffer > 0:
+            while comandoAnterior != (b'\x05'):
                 print("O comando anterior foi {}".format(comandoAnterior))
-                print("O buffer tem {} comandos".format(lenBuffer))
-
+                
                 if comandoAnterior != (b'\x04'):
                     comandoAnterior, nRxLoop = com2.getData(1)
-                    lenBuffer -= 1
                     contaByte += 1
                 
                 else:
                     mensagem, nRxLoop = com2.getData(2)
                     comandoAnterior = mensagem[1]
-                    lenBuffer -= 2
                     contaByte += 1
+            #É preciso retirar 1 byte da contagem no final porque ele contabiliza o byte de fim!
+            contaByte -= 1
+
+            print("-------------------------")
+            print("O comando de fim da mensagem ({}) foi recebido".format(comandoAnterior))
+            print("-------------------------")
+            print("Foi recebido um total de {} bytes através da mensagem".format(contaByte))
                 
-            print(contaByte)
-                
-      
+        #agora vamos enviar de volta o que foi recebido, contando que deu tudo certo!
+        print("-------------------------")
+        print("Enviando ao client quantos bytes foram recebidos")
+        response = bytearray(b'\n')
+        response.append(contaByte)
+        print(response)
+        com2.sendData(response)
+               
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")
         print("-------------------------")
+
+        t1 = time.time()
+        fullTime = t1-t0
         com2.disable()
         
     except Exception as erro:
