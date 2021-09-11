@@ -71,7 +71,6 @@ class RX(object):
         t0 = time.time()
         t = 0
         while(self.getBufferLen() < size):
-            print(self.getBufferLen())
             t1 = time.time()
             t = t1-t0   
 

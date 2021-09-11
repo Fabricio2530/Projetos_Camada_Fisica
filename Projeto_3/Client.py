@@ -140,7 +140,7 @@ def main():
         while fragmentacao:
             print("---------------------------")
             print("Estamos no package de id: {}".format(NUM_ID))
-            if (NUM_ID >= 3):
+            if (NUM_ID > len(FRAGMENTO) ):
                 fragmentacao = False
             else:
                 mensagem = DATAGRAMA(NUM_ID, FRAGMENTO)
@@ -148,21 +148,27 @@ def main():
                 print("O seguinte pacote foi criado:")
                 print(mensagem)
                 print("---------------------------")
-                print("O pacote tem tamanho {}".format(len(mensagem)))
+                print("O pacote tem tamanho {}\n".format(len(mensagem)))
                 
                 #AGORA É PRECISO ENVIAR A MENSAGEM
                 com1.sendData(mensagem)
                 waitResponse = True 
                 while waitResponse:
+                    print('ESPERANDO RESPOSTA DO SERVIDOR\n')
                     response, nresponse = com1.getData(15)
+                    
+                    print('RESPOSTA RECEBIDA\n')
+                    
                     nPacote = response[1]
-                    resultadoEnvio = response(4)
+                    resultadoEnvio = response[4]
 
                     if resultadoEnvio == 1:
+                        print('O ENVIO DO PACOTE {} FOI UM SUCESSO\n'.format(NUM_ID))
                         NUM_ID += 1
                         waitResponse = False
                     
                     else:
+                        print('O pacote não foi enviado corretamente\n')
                         waitResponse = False
 
         print('terminando a comunicação')

@@ -105,7 +105,7 @@ def main():
             recepção da mensagem
         '''
 
-        while NUM_ID <= 2:
+        while NUM_ID < TOTAL_PACKAGES:
             print("Estamos no package {}\n".format(NUM_ID))
             #vamos tentar receber o primeiro pacote
             time.sleep(1)
@@ -133,13 +133,17 @@ def main():
                         NUM_ID += 1
                         mensagem = DATAGRAMA(NUM_ID, 1)
                         #agora é preciso enviar a mensagem dizendo que deu tudo certo!!
-
+                        com2.sendData(mensagem)
 
                     else:
                         print('O EOP NÃO FOI ENVIADO DA MANEIRA ADEQUADA, POR FAVOR REENVIAR O PACOTE\n')
 
             else:
-                print('Houve um erro com o envio do pacote')        
+                print('Houve um erro com o envio do pacote')  
+
+        newFile = open("IMG_SERVER.png", "xb")
+        newFile.write(TOTAL_PAYLOAD)
+        newFile.close()      
 
         
 
