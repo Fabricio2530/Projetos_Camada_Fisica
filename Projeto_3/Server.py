@@ -10,7 +10,7 @@ def DATAGRAMA(nPacote, resposta=0):
     package.append(nPacote) #numero do pacote
     package.append(0) #tamanho do payload
     package.append(4) 
-    package.append(resposta)#resposta do servidor se deu certo ou nao
+    package.append(resposta)#resposta do servidor se deu certo ou nao 1-> deu certo 0-> Vish. Deu ruim!
     package.append(0) #Como servidor não precisa de payload, o numero de pacotes totais é 0
     for num in range(4):
         package.append(0)
@@ -115,6 +115,8 @@ def main():
             if (mensagem[0] == b'\x01') or (mensagem[0] == 1):
                 if (mensagem[1] <= NUM_ID):
                     print('FOI ENVIADO O MESMO PACOTE, POR FAVOR ENVIAR O PRÓXIMO\n')
+                    reenvio = DATAGRAMA(NUM_ID)
+                    com2.sendData(mensagem)
 
                 else:
                     print('byte inicial recebido com sucesso\n')
@@ -137,6 +139,8 @@ def main():
 
                     else:
                         print('O EOP NÃO FOI ENVIADO DA MANEIRA ADEQUADA, POR FAVOR REENVIAR O PACOTE\n')
+                        reenvio = DATAGRAMA(NUM_ID)
+                        com2.sendData(mensagem)
 
             else:
                 print('Houve um erro com o envio do pacote')  
