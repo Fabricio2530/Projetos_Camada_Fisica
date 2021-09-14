@@ -24,12 +24,18 @@ import numpy as np
 #serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
 serialName1 = "COM4"    
              # Windows(variacao de)
-
+teste1 = True
+teste2 = True
 def DATAGRAMA(n_id, mensagemInteira):
+    global teste1, teste2
     #criando o bit inicial de toda mensagem
     package = bytearray(b'\x01')
     #adicionando o id
-    package.append(n_id)
+    if n_id == 5 and teste1 :
+        package.append(4)
+        teste = False
+    else:
+        package.append(n_id)
     
     if n_id == 0:
         #adicionando o tamanho do PayLoad
@@ -70,11 +76,17 @@ def DATAGRAMA(n_id, mensagemInteira):
 
         #vamos adicionar agora o PayLoad
         package += (mensagemInteira[n_id-1])
-
-        #vamos adicionar o restante: o EOP
-        for num in range(2):
+        if n == 10 and teste2:
+            package.append(0)
+            package.append(4)
             package.append(2)
             package.append(4)
+            teste2 = False
+        #vamos adicionar o restante: o EOP
+        else:
+            for num in range(2):
+                package.append(2)
+                package.append(4)
 
     return package
         
@@ -164,11 +176,17 @@ def main():
 
                     if resultadoEnvio == 1:
                         print('O ENVIO DO PACOTE {} FOI UM SUCESSO\n'.format(NUM_ID))
-                        NUM_ID += 1
+                        NUM_ID = nPacote + 1
                         waitResponse = False
                     
-                    else:
-                        print('O pacote não foi enviado corretamente\n')
+                    elif resultadoEnvio == 0:
+                        NUM_ID += 1
+                        print('O pacote não foi enviado corretamente -> Enviou o mesmo pacote\n\n')
+                        print(f" foi enviado o pacote {nPacote} ao inveés do pacote {nPacote+1}")
+                        waitResponse = False
+                    elif resultadoEnvio == 2:
+                        NUM_ID = nPacote
+                        print("Reenviando...\n\n\n")
                         waitResponse = False
 
         print('terminando a comunicação')

@@ -108,15 +108,18 @@ def main():
         while NUM_ID < TOTAL_PACKAGES:
             print("Estamos no package {}\n".format(NUM_ID))
             #vamos tentar receber o primeiro pacote
-            time.sleep(1)
+            #time.sleep(1)
             mensagem, nMensagem = com2.getData(10) #primeiro temos que ler o HEAD, ele quem diz quantos BYTES temos
             print(mensagem)
             print(mensagem[0])
             if (mensagem[0] == b'\x01') or (mensagem[0] == 1):
                 if (mensagem[1] <= NUM_ID):
                     print('FOI ENVIADO O MESMO PACOTE, POR FAVOR ENVIAR O PRÓXIMO\n')
-                    reenvio = DATAGRAMA(NUM_ID)
-                    com2.sendData(mensagem)
+                    reenvio = DATAGRAMA(NUM_ID,0)
+                    com2.getData(118)
+                    com2.sendData(reenvio)
+
+                    
 
                 else:
                     print('byte inicial recebido com sucesso\n')
@@ -139,8 +142,8 @@ def main():
 
                     else:
                         print('O EOP NÃO FOI ENVIADO DA MANEIRA ADEQUADA, POR FAVOR REENVIAR O PACOTE\n')
-                        reenvio = DATAGRAMA(NUM_ID)
-                        com2.sendData(mensagem)
+                        reenvio = DATAGRAMA(NUM_ID,2)
+                        com2.sendData(reenvio)
 
             else:
                 print('Houve um erro com o envio do pacote')  
