@@ -133,8 +133,8 @@ def main():
             response, nResponse = com1.getData(15)
             print(response)
             if ((response == "")):
-                question = input("Você quer tentar de novo? S/N\n")
-                if question == "S":
+                question = input("Você quer tentar de novo? S/N\n").lower()
+                if question == "s":
                     pass
                 else:
                     break
