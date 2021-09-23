@@ -181,6 +181,7 @@ def main():
                 t = time.time()
                 while it1:
                     sucesso,tipo,msg= recebe(1,com2,n_head)
+
                     if msg[0]==3:
                         if n == msg[4]:
 
@@ -230,9 +231,6 @@ def main():
                             if time.time()-timer1 >2:
                                 envia(2,com2,n_packages,4,n,nh7=n)
                                 timer1 = time.time()
-
-
-
             else:
                 envia(1,com2,n_packages,4,n,nh7=n)
                 print("Dados recebidos com sucesso")
