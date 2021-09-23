@@ -243,7 +243,7 @@ def main():
                         nh7 = msg[7]
                         print(f"pacote {nh7}enviado corretamente")
                         client(1,"envio",msg[0],len(msg),n)
-                        n = nh7 + 1
+                        n = nh7 + 2
                     elif type == 6:
                         print("Pacote errado ou corrompido. Reenviando mensagem")
                         n = msg[6]

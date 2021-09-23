@@ -182,53 +182,56 @@ def main():
                 timer2 = time.time()
                 t = time.time()
                 while it1:
-                   sucesso,tipo,msg= recebe(1,com2,n_head)
-                   if sucesso:
-                       if n == msg[4]:
+                    sucesso,tipo,msg= recebe(1,com2,n_head)
+                    if sucesso:
+                        if tipo == 3:
+                            print(f"\n\n\n{msg[4]}\n\n\n")
+                            if n == msg[4]:
 
-                           payloadSize = msg[5]
-                           print(f"\n\n\n\n n---> {n} payload-->{payloadSize}")
-                           sucesso,tipo,msg=recebe(1,com2,payloadSize+eopSize)
-                           print(f"\npacote ne número correto: {n}\n")
-                           print(f"confirmando o número de payload: {len(msg)-4}")
-                           print(f"ta funfando: {msg[payloadSize:payloadSize+eopSize]==eop()}")
-                           print(f"{msg[payloadSize:payloadSize+eopSize]}")
-                           print(f"{eop()}")
-                           if sucesso and msg[payloadSize:payloadSize+4] == eop():
-                               print(f"\nO package {n} foi recebido com sucesso\n")
-                               payload_list+=msg[0:payloadSize]
-                               envia(1,com2,n_packages,4,n,nh7=n)
-                               nh7 = n
-                               n+= 1
-                               it1 = False
-                        #    else:
-                        #         print("\npacote enviado com conteudo errado, ou pacote errado\n")
-                        #         print(f"\nesperando o pacote de número :{n}")
-                        #         recebe(com2,118)
-                        #         envia(com2,n_packages,6,n,nh6=n)
-                        #         it1 = False
-                       else:
-                           if tipo == [0]:
-                               pass
-                           else:
-                                print("\npacote errado\n")
-                                print(f"\nesperando o pacote de número :{n}")
-                                recebe(2,com2,118)
-                                envia(2,com2,n_packages,6,n,nh6=n)
+                                payloadSize = msg[5]
+                                print(f"\n\n\n\n n---> {n} payload-->{payloadSize}")
+                                sucesso,tipo,msg=recebe(1,com2,payloadSize+eopSize)
+                                print(f"\npacote ne número correto: {n}\n")
+                                print(f"confirmando o número de payload: {len(msg)-4}")
+                                print(f"ta funfando: {msg[payloadSize:payloadSize+eopSize]==eop()}")
+                                print(f"{msg[payloadSize:payloadSize+eopSize]}")
+                                print(f"{eop()}")
+                                if sucesso and msg[payloadSize:payloadSize+4] == eop():
+                                    print(f"\nO package {n} foi recebido com sucesso\n")
+                                    payload_list+=msg[0:payloadSize]
+                                    envia(1,com2,n_packages,4,n,nh7=n)
+                                    nh7 = n
+                                    n+= 1
+                                    it1 = False
+                                #    else:
+                                #         print("\npacote enviado com conteudo errado, ou pacote errado\n")
+                                #         print(f"\nesperando o pacote de número :{n}")
+                                #         recebe(com2,118)
+                                #         envia(com2,n_packages,6,n,nh6=n)
+                            #         it1 = False
+                            else:
+                                if tipo == [0]:
+                                    pass
+                                else:
+                                    print("\npacote errado\n")
+                                    print(f"\nesperando o pacote de número :{n}")
+                                    recebe(2,com2,118)
+                                    envia(2,com2,n_packages,6,n,nh6=n)
+                                    it1 = False
+                        else:
+
+                            time.sleep(1)
+                            if time.time()-timer2 > 20:
+                                ocioso = True
+                                envia(5,com2,n_packages,5,n)
                                 it1 = False
-                   else:
-                      time.sleep(1)
-                      if time.time()-timer2 > 20:
-                          ocioso = True
-                          envia(5,com2,n_packages,5,n)
-                          it1 = False
-                          print("\n\nTime out.\n\n")
-                          break
-                      else:
+                                print("\n\nTime out.\n\n")
+                                break
+                            else:
 
-                          if time.time()-timer1 >2:
-                              envia(2,com2,n_packages,4,n,nh7=n)
-                              timer1 = time.time()
+                                if time.time()-timer1 >2:
+                                    envia(2,com2,n_packages,4,n,nh7=n)
+                                    timer1 = time.time()
 
 
 
