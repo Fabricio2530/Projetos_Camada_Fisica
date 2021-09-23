@@ -9,7 +9,8 @@
 #esta é a camada superior, de aplicação do seu software de comunicação serial UART.
 #para acompanhar a execução e identificar erros, construa prints ao longo do código! 
 
-
+import sys
+from termcolor import colored, cprint
 from enlace import *
 import time
 import numpy as np
@@ -243,7 +244,7 @@ def main():
                         nh7 = msg[7]
                         print(f"pacote {nh7}enviado corretamente")
                         client(1,"envio",msg[0],len(msg),n)
-                        n = nh7 + 1
+                        n = nh7 + 2
                     elif type == 6:
                         print("Pacote errado ou corrompido. Reenviando mensagem")
                         n = msg[6]

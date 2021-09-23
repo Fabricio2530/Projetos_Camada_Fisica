@@ -9,7 +9,8 @@
 #esta é a camada superior, de aplicação do seu software de comunicação serial UART.
 #para acompanhar a execução e identificar erros, construa prints ao longo do código! 
 
-
+import sys
+from termcolor import colored, cprint
 from typing import Type
 from enlace import *
 import time
@@ -104,9 +105,6 @@ def eop():
 
 def datagrama(n_packages,n_bytes,n,type,nh6,nh7):
     #Define o tamanho da mensagem e a quantidade de bytes a serem enviados
-   
-    
-
     #Geração do datagrama
     
     package = []
@@ -174,7 +172,7 @@ def main():
                         print("\n Mensagem recebida. Comunicação começaram em instantes.\n")
                         nh7 = n
                         n+=1
-                time.sleep(1)
+                #time.sleep(1)
                 
             if n <= n_packages:
                 it1 = True
@@ -182,53 +180,56 @@ def main():
                 timer2 = time.time()
                 t = time.time()
                 while it1:
-                   sucesso,tipo,msg= recebe(1,com2,n_head)
-                   if sucesso:
-                       if n == msg[4]:
+                    sucesso,tipo,msg= recebe(1,com2,n_head)
+                    if msg[0]==3:
+                        if n == msg[4]:
 
-                           payloadSize = msg[5]
-                           print(f"\n\n\n\n n---> {n} payload-->{payloadSize}")
-                           sucesso,tipo,msg=recebe(1,com2,payloadSize+eopSize)
-                           print(f"\npacote ne número correto: {n}\n")
-                           print(f"confirmando o número de payload: {len(msg)-4}")
-                           print(f"ta funfando: {msg[payloadSize:payloadSize+eopSize]==eop()}")
-                           print(f"{msg[payloadSize:payloadSize+eopSize]}")
-                           print(f"{eop()}")
-                           if sucesso and msg[payloadSize:payloadSize+4] == eop():
-                               print(f"\nO package {n} foi recebido com sucesso\n")
-                               payload_list+=msg[0:payloadSize]
-                               envia(1,com2,n_packages,4,n,nh7=n)
-                               nh7 = n
-                               n+= 1
-                               it1 = False
+                            payloadSize = msg[5]
+                            print(f"\n\n\n\n n---> {n} payload-->{payloadSize}")
+                            sucesso,tipo,msg=recebe(1,com2,payloadSize+eopSize)
+                            print()
+                            cprint("\npacote de número correto: {}\n".format(n), 'green', attrs=['bold'], file=sys.stderr)
+                            print(f"confirmando o número de payload: {len(msg)-4}")
+                            print(f"ta funfando: {msg[payloadSize:payloadSize+eopSize]==eop()}")
+                            print(f"{msg[payloadSize:payloadSize+eopSize]}")
+                            print(f"{eop()}")
+                            if sucesso and msg[payloadSize:payloadSize+4] == eop():
+                                cprint("\nO package {} foi recebido com sucesso\n".format(n), 'green', attrs=['bold'], file=sys.stderr)
+                                payload_list+=msg[0:payloadSize]
+                                envia(1,com2,n_packages,4,n,nh7=n)
+                                nh7 = n
+                                n+= 1
+                                it1 = False
                         #    else:
                         #         print("\npacote enviado com conteudo errado, ou pacote errado\n")
                         #         print(f"\nesperando o pacote de número :{n}")
                         #         recebe(com2,118)
                         #         envia(com2,n_packages,6,n,nh6=n)
                         #         it1 = False
-                       else:
-                           if tipo == [0]:
-                               pass
-                           else:
-                                print("\npacote errado\n")
+                        else:
+                            if tipo == [0]:
+                                pass
+                            else:
+                                cprint("\nPacote errado!\n", 'red', attrs=['bold'], file=sys.stderr)
+                                cprint("\nRecebeu o pacote {}!\n".format(msg[4]), 'cyan', attrs=['bold'], file=sys.stderr)
+                                cprint("\nEsperando o pacote de número {}!\n".format(n), 'cyan', attrs=['bold'], file=sys.stderr)
                                 print(f"\nesperando o pacote de número :{n}")
                                 recebe(2,com2,118)
                                 envia(2,com2,n_packages,6,n,nh6=n)
                                 it1 = False
-                   else:
-                      time.sleep(1)
-                      if time.time()-timer2 > 20:
-                          ocioso = True
-                          envia(5,com2,n_packages,5,n)
-                          it1 = False
-                          print("\n\nTime out.\n\n")
-                          break
-                      else:
+                    else:
+                        time.sleep(1)
+                        if time.time()-timer2 > 20:
+                            ocioso = True
+                            envia(5,com2,n_packages,5,n)
+                            it1 = False
+                            print("\n\nTime out.\n\n")
+                            break
+                        else:
 
-                          if time.time()-timer1 >2:
-                              envia(2,com2,n_packages,4,n,nh7=n)
-                              timer1 = time.time()
+                            if time.time()-timer1 >2:
+                                envia(2,com2,n_packages,4,n,nh7=n)
+                                timer1 = time.time()
 
 
 
