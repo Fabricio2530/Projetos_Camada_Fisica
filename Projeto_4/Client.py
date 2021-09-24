@@ -140,14 +140,14 @@ def recebe (client_,com1):
     else:
         return (False,[0],[0])
 
-def client(client_,com,type,packageSize,n,n_packages=n_packages,CRC=0000):
+def client(client_,com,TYPE,packageSize,n,n_packages=n_packages,CRC=0000):
     if type != 0:
         if type == 3:
-            line =  str(datetime.today())+" / "+str(com)+" / "+str(type)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
+            line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
         else:
-            line =  str(datetime.today())+" / "+str(com)+" / "+str(type)+" / "+str(packageSize)
+            line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
         
-        newFile = open(f"Client{client_}.txt", "a")
+        newFile = open(f"Client5.txt", "a") #tem que ficar hardcoded pra cada tipo de teste
         newFile.writelines(line+"\n")
         newFile.close()
     else:

@@ -36,13 +36,13 @@ n_packages = 0
 n_head = 10
 eopSize = 4
 
-def server(server,com,type,packageSize,n,n_packages=n_packages,CRC="0000"):
+def server(server,com,TYPE,packageSize,n,n_packages=n_packages,CRC="0000"):
     if type == 3:
-        line =  str(datetime.today())+" / "+str(com)+" / "+str(type)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
+        line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
     else:
-        line =  str(datetime.today())+" / "+str(com)+" / "+str(type)+" / "+str(packageSize)
+        line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
     
-    newFile = open(f"Server{server}.txt", "a")
+    newFile = open(f"Server5.txt", "a") #isso tem que ser hardcoded pra cada teste
     newFile.writelines(line+"\n")
     newFile.close()
 
@@ -123,10 +123,10 @@ def datagrama(n_packages,n_bytes,n,type,nh6,nh7):
     
     return bytearray(package)
 
-def envia (server_,com2,n_packages,type,n,nh6=0,nh7=0):
-    data = datagrama(n_packages,payload_max_size,n,type,nh6,nh7)
+def envia (server_,com2,n_packages,TYPE,n,nh6=0,nh7=0):
+    data = datagrama(n_packages,payload_max_size,n,TYPE,nh6,nh7)
     com2.sendData(np.asarray(data))
-    server(server_,"envia",type,len(data),n)
+    server(server_,"envia",TYPE,len(data),n)
 
 def recebe (server_,com2,sizebuffer):
     
@@ -168,7 +168,7 @@ def main():
                     if tipo == 1 and msg[2] == server_id:
                         n_packages = msg[3]
                         ocioso = False
-                        envia(1,com2,n_packages,2,n,nh7=0)
+                        envia(1,com2,n_packages,2,n,nh7=0) #para o teste 3, basta comentar essa linha
                         print("\n Mensagem recebida. Comunicação começaram em instantes.\n")
                         nh7 = n
                         n+=1
@@ -227,9 +227,8 @@ def main():
                             print("\n\nTime out.\n\n")
                             break
                         else:
-
                             if time.time()-timer1 >2:
-                                envia(2,com2,n_packages,4,n,nh7=n)
+                                envia(2,com2,n_packages,4,n,nh7=n) 
                                 timer1 = time.time()
             else:
                 envia(1,com2,n_packages,4,n,nh7=n)
