@@ -38,13 +38,14 @@ archive = "archive"
 n_packages = 0
 
 def crc(archive,n):
+
     data =  payload(archive,n,3)
-    crc = Crc16.calc(data)
-    crc = crc.to_bytes(2,"little")
+    print(data)
+    crc16 = Crc16.calc(bytearray(data))
+    crc_ = crc16.to_bytes(2,"little")
 
-    h8 = crc[0:1]
-    h9 = crc[1:]
-
+    h8 = crc_[0]
+    h9 = crc_[1]
     return h8,h9
 
 def head(messageSize,n,type,nh6,nh7,h8=0,h9=0):
@@ -121,12 +122,12 @@ def datagrama(archive,n_bytes,n,type,nh6,nh7):
     packages = ceil(messageSize/n_bytes)
     # Calula CRC de 16 bits
     h8,h9 = crc(archive,n)
-
     #Geração do datagrama
     
     package = []
 
     package.extend(head(messageSize,n,type,nh6,nh7,h8=h8,h9=h9))
+
     package.extend(payload(archive,n,type))
     package.extend(eop())
 
@@ -212,6 +213,7 @@ def main():
             if not(inicia) :
                 #Mensagem do tipo 1
                 envia(1,com1,archive,1,n)
+                print("foi enviado")
                 time.sleep(5)
                 t_hand_20 = (time.time()-t_hand)
                 if t_hand_20 > 20:

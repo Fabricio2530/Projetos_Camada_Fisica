@@ -43,8 +43,8 @@ def check_crc(h8,h9,payload):
     crc = Crc16.calc(payload)
     crc = crc.to_bytes(2,"little")
 
-    h8_ = crc[0:1]
-    h9_ = crc[1:]
+    h8_ = crc[0]
+    h9_ = crc[1]
 
     if h8_ == h8 and h9_ == h9:
         return True
@@ -194,10 +194,10 @@ def main():
                 t = time.time()
                 while it1:
                     sucesso,tipo,msg= recebe(1,com2,n_head)
-                    h8 = msg[8]
-                    h9 = msg[9]
                     if msg[0]==3:
                         if n == msg[4]:
+                            h8 = msg[8]
+                            h9 = msg[9]
 
                             payloadSize = msg[5]
                             print(f"\n\n\n\n n---> {n} payload-->{payloadSize}")
