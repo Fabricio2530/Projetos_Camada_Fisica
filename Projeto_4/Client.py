@@ -16,6 +16,9 @@ import time
 import numpy as np
 from math import *
 from datetime import datetime
+from crccheck.crc import Crc16, CrcXmodem
+from crccheck.checksum import Checksum16
+
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -34,7 +37,17 @@ payload_max_size = 114
 archive = "archive"
 n_packages = 0
 
-def head(messageSize,n,type,nh6,nh7):
+def crc(archive,n):
+    data =  payload(archive,n,3)
+    crc = Crc16.calc(data)
+    crc = crc.to_bytes(2,"little")
+
+    h8 = crc[0:1]
+    h9 = crc[1:]
+
+    return h8,h9
+
+def head(messageSize,n,type,nh6,nh7,h8=0,h9=0):
     global server_id, sensor_id,payload_max_size
 
  # h0 - tipo de mensagem
@@ -77,8 +90,6 @@ def head(messageSize,n,type,nh6,nh7):
         h7 = n-1
 
 # h8 e h9 - CRC ( por enquanto 00 )
-    h8 = 0
-    h9 = 0
 
     if int(type) == 1:
         # h0 - tipo de mensagem
@@ -108,12 +119,14 @@ def datagrama(archive,n_bytes,n,type,nh6,nh7):
     #Define o tamanho da mensagem e a quantidade de bytes a serem enviados
     messageSize = len(archive)
     packages = ceil(messageSize/n_bytes)
+    # Calula CRC de 16 bits
+    h8,h9 = crc(archive,n)
 
     #Geração do datagrama
     
     package = []
 
-    package.extend(head(messageSize,n,type,nh6,nh7))
+    package.extend(head(messageSize,n,type,nh6,nh7,h8=h8,h9=h9))
     package.extend(payload(archive,n,type))
     package.extend(eop())
 
@@ -147,7 +160,7 @@ def client(client_,com,TYPE,packageSize,n,n_packages=n_packages,CRC=0000):
         else:
             line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
         
-        newFile = open(f"Client5.txt", "a") #tem que ficar hardcoded pra cada tipo de teste
+        newFile = open(f"Client1_2.txt", "a") #tem que ficar hardcoded pra cada tipo de teste
         newFile.writelines(line+"\n")
         newFile.close()
     else:
