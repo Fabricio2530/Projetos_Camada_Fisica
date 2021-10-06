@@ -52,7 +52,7 @@ def check_crc(h8,h9,payload):
         return False
 
 def server(server,com,TYPE,packageSize,n,n_packages=n_packages,CRC="0000"):
-    if type == 3:
+    if TYPE == 3:
         line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
     else:
         line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
@@ -139,14 +139,20 @@ def datagrama(n_packages,n_bytes,n,type,nh6,nh7):
 def envia (server_,com2,n_packages,TYPE,n,nh6=0,nh7=0):
     data = datagrama(n_packages,payload_max_size,n,TYPE,nh6,nh7)
     com2.sendData(np.asarray(data))
-    server(server_,"envia",TYPE,len(data),n)
+    h8 = data[8]
+    h9 = data[9]
+    CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+    server(server_,"envia",TYPE,len(data),n,CRC=CRC)
 
 def recebe (server_,com2,sizebuffer):
     
     rxBuffer, nRx = com2.getData(sizebuffer)
     if len(rxBuffer) == sizebuffer:
         type = rxBuffer[0]
-        server(server_,"recebe",type,len(rxBuffer),rxBuffer[4])
+        h8 = rxBuffer[8]
+        h9 = rxBuffer[9]
+        CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+        server(server_,"recebe",type,len(rxBuffer),rxBuffer[4],CRC=CRC)
         return (True,type,rxBuffer)
         
     else:

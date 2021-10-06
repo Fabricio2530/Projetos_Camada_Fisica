@@ -40,7 +40,6 @@ n_packages = 0
 def crc(archive,n):
 
     data =  payload(archive,n,3)
-    print(data)
     crc16 = Crc16.calc(bytearray(data))
     crc_ = crc16.to_bytes(2,"little")
 
@@ -143,20 +142,26 @@ def envia (client_,com1,archive,type,n,nh6=0,nh7=0):
     data = datagrama(archive,payload_max_size,n,type,nh6,nh7)
     # print(f"\n\n\n\n {data}\n\n\n")
     com1.sendData(np.asarray(data))
-    client(client_,"envia",type,len(data),n)
+    h8 = data[8]
+    h9 = data[9]
+    CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+    client(client_,"envia",type,len(data),n,CRC=CRC)
 
 def recebe (client_,com1):
     rxBuffer, nRx = com1.getData(14)
     if len(rxBuffer) == 14:
         type = rxBuffer[0]
-        client(client_,"recebe",type,len(rxBuffer),rxBuffer[4])
+        h8 = rxBuffer[8]
+        h9 = rxBuffer[9]
+        CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+        client(client_,"recebe",type,len(rxBuffer),rxBuffer[4],CRC=CRC)
         return (True,type,rxBuffer)
     else:
         return (False,[0],[0])
 
 def client(client_,com,TYPE,packageSize,n,n_packages=n_packages,CRC=0000):
-    if type != 0:
-        if type == 3:
+    if TYPE != 0:
+        if TYPE == 3:
             line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
         else:
             line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
@@ -213,7 +218,6 @@ def main():
             if not(inicia) :
                 #Mensagem do tipo 1
                 envia(1,com1,archive,1,n)
-                print("foi enviado")
                 time.sleep(5)
                 t_hand_20 = (time.time()-t_hand)
                 if t_hand_20 > 20:
