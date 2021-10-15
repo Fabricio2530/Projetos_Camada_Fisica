@@ -17,6 +17,9 @@ import time
 import numpy as np
 from math import *
 from datetime import datetime
+from crccheck.crc import Crc16, CrcXmodem
+from crccheck.checksum import Checksum16
+
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -36,19 +39,31 @@ n_packages = 0
 n_head = 10
 eopSize = 4
 
+def check_crc(h8,h9,payload):
+    crc = Crc16.calc(payload)
+    crc = crc.to_bytes(2,"little")
+
+    h8_ = crc[0]
+    h9_ = crc[1]
+
+    if h8_ == h8 and h9_ == h9:
+        return True
+    else:
+        return False
+
 def server(server,com,TYPE,packageSize,n,n_packages=n_packages,CRC="0000"):
-    if type == 3:
+    if TYPE == 3:
         line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
     else:
         line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
     
-    newFile = open(f"Server5.txt", "a") #isso tem que ser hardcoded pra cada teste
+    newFile = open(f"Server1_2.txt", "a") #isso tem que ser hardcoded pra cada teste
     newFile.writelines(line+"\n")
     newFile.close()
 
 
 
-def head(n_packages,n,type,nh6,nh7):
+def head(n_packages,n,type,nh6,nh7,h8=0,h9=0):
     global server_id, sensor_id,payload_max_size
 
  # h0 - tipo de mensagem
@@ -88,8 +103,6 @@ def head(n_packages,n,type,nh6,nh7):
         h7 = n-1
 
 # h8 e h9 - CRC ( por enquanto 00 )
-    h8 = 0
-    h9 = 0
 
     if int(type) == 0:
         # h0 - tipo de mensagem
@@ -126,14 +139,20 @@ def datagrama(n_packages,n_bytes,n,type,nh6,nh7):
 def envia (server_,com2,n_packages,TYPE,n,nh6=0,nh7=0):
     data = datagrama(n_packages,payload_max_size,n,TYPE,nh6,nh7)
     com2.sendData(np.asarray(data))
-    server(server_,"envia",TYPE,len(data),n)
+    h8 = data[8]
+    h9 = data[9]
+    CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+    server(server_,"envia",TYPE,len(data),n,CRC=CRC)
 
 def recebe (server_,com2,sizebuffer):
     
     rxBuffer, nRx = com2.getData(sizebuffer)
     if len(rxBuffer) == sizebuffer:
         type = rxBuffer[0]
-        server(server_,"recebe",type,len(rxBuffer),rxBuffer[4])
+        h8 = rxBuffer[8]
+        h9 = rxBuffer[9]
+        CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+        server(server_,"recebe",type,len(rxBuffer),rxBuffer[4],CRC=CRC)
         return (True,type,rxBuffer)
         
     else:
@@ -181,20 +200,22 @@ def main():
                 t = time.time()
                 while it1:
                     sucesso,tipo,msg= recebe(1,com2,n_head)
-
                     if msg[0]==3:
                         if n == msg[4]:
+                            h8 = msg[8]
+                            h9 = msg[9]
 
                             payloadSize = msg[5]
                             print(f"\n\n\n\n n---> {n} payload-->{payloadSize}")
                             sucesso,tipo,msg=recebe(1,com2,payloadSize+eopSize)
+                            payload = msg[0:payloadSize]
                             print()
                             cprint("\npacote de número correto: {}\n".format(n), 'green', attrs=['bold'], file=sys.stderr)
                             print(f"confirmando o número de payload: {len(msg)-4}")
                             print(f"ta funfando: {msg[payloadSize:payloadSize+eopSize]==eop()}")
                             print(f"{msg[payloadSize:payloadSize+eopSize]}")
                             print(f"{eop()}")
-                            if sucesso and msg[payloadSize:payloadSize+4] == eop():
+                            if sucesso and msg[payloadSize:payloadSize+4] == eop() and check_crc(h8,h9,payload):
                                 cprint("\nO package {} foi recebido com sucesso\n".format(n), 'green', attrs=['bold'], file=sys.stderr)
                                 payload_list+=msg[0:payloadSize]
                                 envia(1,com2,n_packages,4,n,nh7=n)
@@ -215,7 +236,7 @@ def main():
                                 cprint("\nRecebeu o pacote {}!\n".format(msg[4]), 'cyan', attrs=['bold'], file=sys.stderr)
                                 cprint("\nEsperando o pacote de número {}!\n".format(n), 'cyan', attrs=['bold'], file=sys.stderr)
                                 print(f"\nesperando o pacote de número :{n}")
-                                recebe(2,com2,118)
+                                rxBuffer, nRx = com2.getData(118)
                                 envia(2,com2,n_packages,6,n,nh6=n)
                                 it1 = False
                     else:

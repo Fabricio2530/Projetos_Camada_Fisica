@@ -16,6 +16,9 @@ import time
 import numpy as np
 from math import *
 from datetime import datetime
+from crccheck.crc import Crc16, CrcXmodem
+from crccheck.checksum import Checksum16
+
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer comunicaçao
 #   para saber a sua porta, execute no terminal :
@@ -34,7 +37,17 @@ payload_max_size = 114
 archive = "archive"
 n_packages = 0
 
-def head(messageSize,n,type,nh6,nh7):
+def crc(archive,n):
+
+    data =  payload(archive,n,3)
+    crc16 = Crc16.calc(bytearray(data))
+    crc_ = crc16.to_bytes(2,"little")
+
+    h8 = crc_[0]
+    h9 = crc_[1]
+    return h8,h9
+
+def head(messageSize,n,type,nh6,nh7,h8=0,h9=0):
     global server_id, sensor_id,payload_max_size
 
  # h0 - tipo de mensagem
@@ -77,8 +90,6 @@ def head(messageSize,n,type,nh6,nh7):
         h7 = n-1
 
 # h8 e h9 - CRC ( por enquanto 00 )
-    h8 = 0
-    h9 = 0
 
     if int(type) == 1:
         # h0 - tipo de mensagem
@@ -108,12 +119,14 @@ def datagrama(archive,n_bytes,n,type,nh6,nh7):
     #Define o tamanho da mensagem e a quantidade de bytes a serem enviados
     messageSize = len(archive)
     packages = ceil(messageSize/n_bytes)
-
+    # Calula CRC de 16 bits
+    h8,h9 = crc(archive,n)
     #Geração do datagrama
     
     package = []
 
-    package.extend(head(messageSize,n,type,nh6,nh7))
+    package.extend(head(messageSize,n,type,nh6,nh7,h8=h8,h9=h9))
+
     package.extend(payload(archive,n,type))
     package.extend(eop())
 
@@ -129,25 +142,31 @@ def envia (client_,com1,archive,type,n,nh6=0,nh7=0):
     data = datagrama(archive,payload_max_size,n,type,nh6,nh7)
     # print(f"\n\n\n\n {data}\n\n\n")
     com1.sendData(np.asarray(data))
-    client(client_,"envia",type,len(data),n)
+    h8 = data[8]
+    h9 = data[9]
+    CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+    client(client_,"envia",type,len(data),n,CRC=CRC)
 
 def recebe (client_,com1):
     rxBuffer, nRx = com1.getData(14)
     if len(rxBuffer) == 14:
         type = rxBuffer[0]
-        client(client_,"recebe",type,len(rxBuffer),rxBuffer[4])
+        h8 = rxBuffer[8]
+        h9 = rxBuffer[9]
+        CRC = str(h8.to_bytes(1, 'little') + h9.to_bytes(1,'little'))
+        client(client_,"recebe",type,len(rxBuffer),rxBuffer[4],CRC=CRC)
         return (True,type,rxBuffer)
     else:
         return (False,[0],[0])
 
 def client(client_,com,TYPE,packageSize,n,n_packages=n_packages,CRC=0000):
-    if type != 0:
-        if type == 3:
+    if TYPE != 0:
+        if TYPE == 3:
             line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)+" / "+str(n)+" / "+str(n_packages)+" / "+str(CRC)
         else:
             line =  str(datetime.today())+" / "+str(com)+" / "+str(TYPE)+" / "+str(packageSize)
         
-        newFile = open(f"Client5.txt", "a") #tem que ficar hardcoded pra cada tipo de teste
+        newFile = open(f"Client1_2.txt", "a") #tem que ficar hardcoded pra cada tipo de teste
         newFile.writelines(line+"\n")
         newFile.close()
     else:
