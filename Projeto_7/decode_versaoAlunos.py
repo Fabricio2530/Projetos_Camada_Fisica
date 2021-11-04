@@ -80,7 +80,7 @@ def main():
     print(" A captação de audio começará em 5 segundos")
     time.sleep(5)
    
-   #faca um print informando que a gravacao foi inicializada
+   # faca um print informando que a gravacao foi inicializada
     print("A gravação foi inicializada")
     time.sleep(0.5)
    

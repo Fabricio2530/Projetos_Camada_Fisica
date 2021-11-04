@@ -19,10 +19,7 @@ def main():
     objSignal = signalMeu()
     #declare uma variavel com a frequencia de amostragem, sendo 44100
     audio_arquivo = 'audio_modulado_am.wav'
-    freqDeAmostragem = 44100
-
-
-    
+    freqDeAmostragem = 44100    
     #voce importou a bilioteca sounddevice como, por exemplo, sd. entao
     # os seguintes parametros devem ser setados:
     
@@ -31,7 +28,6 @@ def main():
     duracao = 4 #tempo em segundos que ira aquisitar o sinal acustico captado pelo mic
     #calcule o numero de amostras "numAmostras" que serao feitas (numero de aquisicoes)
     numAmostras = freqDeAmostragem*duracao
-
 
     audio, samplerate = sf.read(audio_arquivo,frames=numAmostras)
     print(samplerate)
@@ -43,6 +39,9 @@ def main():
 
     xf, yf = objSignal.calcFFT(audioAm,freqDeAmostragem)
     plt.plot(xf, np.abs(yf))
+    plt.title('Sinal modulado no regime da frequencia')
+    plt.xlabel('frequencia hz')
+    plt.ylabel('Amplitude')
     plt.show()
 
     # 10 - Filtrando frequências superiores a 4kHz
@@ -53,14 +52,29 @@ def main():
 
     fc = freqDeAmostragem
     fp = 14000
+    portadora = objSignal.generateSin(14000, 1, 4, freqDeAmostragem)[1]
+    #portadora = [sin(2*pi*fp*t)*fp for t in np.linspace(0,duracao,numAmostras)]
 
-    portadora = [sin(2*pi*fp*t)*fp for t in np.linspace(0,duracao,numAmostras)]
+    sinal_demodulado = audio*portadora
 
-    sinal_filtrado = filtro(audio_filtrado,numAmostras,44100)
+    xf, yf = objSignal.calcFFT(sinal_demodulado,freqDeAmostragem)
+    plt.plot(xf, np.abs(yf))
+    plt.title('Sinal demodulado no regime da frequencia')
+    plt.xlabel('frequencia hz')
+    plt.ylabel('Amplitude')
+    plt.show()
 
-    sinalDemodulado = [(sinal_filtrado[t])*(portadora[t]) for t in range(0,numAmostras)]
+    #sinalDemodulado = [(sinal_filtrado[t])*(portadora[t]) for t in range(0,numAmostras)]
+    audio_filtrado = LPF(sinal_demodulado,4000,freqDeAmostragem)
 
-    sd.play(sinalDemodulado)
+    xf, yf = objSignal.calcFFT(audio_filtrado,freqDeAmostragem)
+    plt.plot(xf, np.abs(yf))
+    plt.title('Sinal demodulado e filtrado no regime da frequencia')
+    plt.xlabel('frequencia hz')
+    plt.ylabel('Amplitude')
+    plt.show()
+
+    sd.play(audio_filtrado)
     sd.wait()
     print("...     FIM DO AUDIO\n")
 

@@ -35,8 +35,6 @@ def main():
     audio_arquivo = 'CardiB.wav'
     freqDeAmostragem = 44100
 
-
-    
     #voce importou a bilioteca sounddevice como, por exemplo, sd. entao
     # os seguintes parametros devem ser setados:
     
@@ -51,18 +49,31 @@ def main():
     audio, samplerate = sf.read(audio_arquivo,frames=numAmostras)
     yAudio = audio[:,0]
     samplesAudio = len(yAudio)
-    # sd.play(audio)
-    # sd.wait()
-    # print("...     FIM")
 
     # 2 - normalização do audio
-
     yAudio_normalizado  = normaliza(yAudio)
-
-
+    plt.plot(yAudio_normalizado)
+    plt.title('Audio normalizado')
+    plt.ylabel('Amplitude')
+    plt.xlabel('Tempo')
+    plt.show()
+    
     # 3 - Filtra as frequência acima de 4kHz
 
-    audio_filtrado = filtro(yAudio_normalizado,freqDeAmostragem,4000)
+    audio_filtrado = LPF(yAudio_normalizado,4000,freqDeAmostragem)
+    plt.plot(audio_filtrado)
+    plt.title('Audio filtrado')
+    plt.ylabel('Amplitude')
+    plt.xlabel('Tempo')
+    plt.show()
+
+    xf, yf = objSignal.calcFFT(audio_filtrado,freqDeAmostragem)
+    plt.plot(xf, np.abs(yf))
+    plt.title('Audio filtrado no regime da frequencia')
+    plt.xlabel('frequencia (hz)')
+    plt.ylabel('Amplitude')
+    plt.show()
+    
 
     # 4 - Reproduzindo signal e verificando se ainda está audível
 
@@ -74,10 +85,16 @@ def main():
     # 5 - Modulando sinal de AM com portadora de 14kHz
 
     fp = 14000 # Frequência da senoide portadora
+    portadora = objSignal.generateSin(14000, 1, 4, freqDeAmostragem)[1]
+    #portadora = [sin(2*pi*fp*t)*fp for t in np.linspace(0,duracao,numAmostras)]
+    #sinalAM = [(1+audio_filtrado[t])*portadora[t] for t in range(0,numAmostras)]
+    sinalAM = audio_filtrado*portadora
 
-    portadora = [sin(2*pi*fp*t)*fp for t in np.linspace(0,duracao,numAmostras)]
-
-    sinalAM = [(1+audio_filtrado[t])*portadora[t] for t in range(0,numAmostras)]
+    plt.plot(sinalAM)
+    plt.title('Audio modulado')
+    plt.ylabel('Amplitude')
+    plt.xlabel('Tempo')
+    plt.show()
 
     # 6 - Executando e verificando que não está perfeitamente audível
 
